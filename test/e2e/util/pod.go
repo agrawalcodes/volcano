@@ -71,6 +71,23 @@ func WaitPodReady(ctx *TestContext, pod *v1.Pod) error {
 	})
 }
 
+// WaitPodScheduled waits for a pod to have the PodScheduled condition set to True.
+func WaitPodScheduled(ctx *TestContext, namespace, podName string) error {
+	return wait.PollUntilContextTimeout(context.TODO(), 100*time.Millisecond, TwoMinute, true,
+		func(c context.Context) (bool, error) {
+			pod, err := ctx.Kubeclient.CoreV1().Pods(namespace).Get(c, podName, metav1.GetOptions{})
+			if err != nil {
+				return false, nil
+			}
+			for _, cond := range pod.Status.Conditions {
+				if cond.Type == v1.PodScheduled && cond.Status == v1.ConditionTrue {
+					return true, nil
+				}
+			}
+			return false, nil
+		})
+}
+
 func DeletePod(ctx *TestContext, pod *v1.Pod) {
 	err := ctx.Kubeclient.CoreV1().Pods(pod.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 	Expect(err).NotTo(HaveOccurred(), "failed to delete pod %s", pod.Name)

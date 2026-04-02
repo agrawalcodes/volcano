@@ -232,9 +232,6 @@ e2e-test-admission-webhook: images
 e2e-test-admission-policy: images
 	E2E_TYPE=ADMISSION_POLICY ./hack/run-e2e-kind.sh
 
-e2e-test-shardingcontroller: images
-	E2E_TYPE=SHARDINGCONTROLLER ./hack/run-e2e-kind.sh
-
 e2e-test-agentscheduler: images
 	E2E_TYPE=AGENTSCHEDULER ./hack/run-e2e-kind.sh
 
