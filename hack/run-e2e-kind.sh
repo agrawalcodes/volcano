@@ -40,7 +40,7 @@ export KWOK_NODE_MEMORY=${KWOK_NODE_MEMORY:-8Gi}  # 8GB
 # create kwok node
 function create-kwok-node() {
   local node_index=$1
-  
+
   kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Node
@@ -371,9 +371,9 @@ case ${E2E_TYPE} in
     echo "Running hypernode e2e suite..."
     KUBECONFIG=${KUBECONFIG} GOOS=${OS} ginkgo -r --slow-spec-threshold='30s' --progress ./test/e2e/hypernode/
     ;;
-"CRONJOB")  
-    echo "Running cronjob e2e suite..."  
-    KUBECONFIG=${KUBECONFIG} GOOS=${OS} ginkgo -v -r --slow-spec-threshold='30s' --progress ./test/e2e/cronjob/  
+"CRONJOB")
+    echo "Running cronjob e2e suite..."
+    KUBECONFIG=${KUBECONFIG} GOOS=${OS} ginkgo -v -r --slow-spec-threshold='30s' --progress ./test/e2e/cronjob/
     ;;
 "AGENTSCHEDULER")
     echo "Running agent scheduler e2e suite..."
