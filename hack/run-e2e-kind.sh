@@ -202,7 +202,23 @@ EOF
       effect: "NoSchedule"
     - key: "node-role.kubernetes.io/master"
       operator: "Exists"
-      effect: "NoSchedule"'
+      effect: "NoSchedule"
+  sharding_configmap_data: |
+    schedulerConfigs:
+      - name: volcano
+        type: volcano
+        cpuUtilizationMin: 0.0
+        cpuUtilizationMax: 0.6
+        minNodes: 1
+        maxNodes: 100
+      - name: agent-scheduler
+        type: agent
+        cpuUtilizationMin: 0.7
+        cpuUtilizationMax: 1.0
+        minNodes: 1
+        maxNodes: 100
+    shardSyncPeriod: "30s"
+    enableNodeEventTrigger: true'
   ;;
 *)
   echo "Install volcano chart with crd version $crd_version"
@@ -213,13 +229,25 @@ esac
 
 # helm-install-volcano installs volcano with common helm values.
 # Pass case-specific custom values as a string argument (optional).
-# Extra values are appended under the 'custom:' YAML block.
+# The extra values are written to a temporary file and merged via --values
+# so that YAML literal block scalars (|) are parsed correctly.
 function helm-install-volcano {
   local extra_custom_values="${1:-}"
+  local extra_values_flag=""
+  if [[ -n "${extra_custom_values}" ]]; then
+    local tmpfile
+    tmpfile=$(mktemp /tmp/volcano-extra-values-XXXXXX.yaml)
+    cat > "${tmpfile}" <<EXTRA
+custom:
+${extra_custom_values}
+EXTRA
+    extra_values_flag="--values ${tmpfile}"
+  fi
   cat <<EOF | helm install ${CLUSTER_NAME} installer/helm/chart/volcano \
   --namespace ${NAMESPACE} \
   --kubeconfig ${KUBECONFIG} \
   --values - \
+  ${extra_values_flag} \
   --wait
 basic:
   image_pull_policy: IfNotPresent
@@ -255,8 +283,8 @@ custom:
   scheduler_feature_gates: ${FEATURE_GATES}
   enabled_admissions: "/pods/mutate,/queues/mutate,/podgroups/mutate,/jobs/mutate,/jobs/validate,/jobflows/validate,/pods/validate,/queues/validate,/podgroups/validate,/hypernodes/validate,/cronjobs/validate"
   ignored_provisioners: ${IGNORED_PROVISIONERS:-""}
-${extra_custom_values}
 EOF
+  [[ -n "${extra_values_flag}" ]] && rm -f "${tmpfile}"
 }
 
 function uninstall-volcano {
