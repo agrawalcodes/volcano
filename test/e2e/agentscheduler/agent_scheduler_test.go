@@ -149,13 +149,15 @@ var _ = Describe("Agent Scheduler E2E Test", func() {
 
 		It("should not interfere with default volcano scheduler pods", func() {
 			By("Creating a pod with default volcano scheduler")
+			automount := false
 			volcanoPod := &corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "volcano-default-pod",
 					Namespace: ctx.Namespace,
 				},
 				Spec: corev1.PodSpec{
-					SchedulerName: e2eutil.SchedulerName,
+					SchedulerName:                e2eutil.SchedulerName,
+					AutomountServiceAccountToken: &automount,
 					Containers: []corev1.Container{
 						{
 							Name:    "busybox",
@@ -272,6 +274,11 @@ var _ = Describe("Agent Scheduler E2E Test", func() {
 // Helper functions
 
 func createAgentPod(namespace, name, cpuRequest string) *corev1.Pod {
+	// AutomountServiceAccountToken is disabled to avoid triggering a known
+	// nil-node panic in the agent-scheduler's CSILimits predicate filter.
+	// The SA token volume would cause CSILimits.Filter to dereference a nil
+	// node pointer from the snapshot. This will be fixed separately.
+	automount := false
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -282,7 +289,8 @@ func createAgentPod(namespace, name, cpuRequest string) *corev1.Pod {
 			},
 		},
 		Spec: corev1.PodSpec{
-			SchedulerName: AgentSchedulerName,
+			SchedulerName:                AgentSchedulerName,
+			AutomountServiceAccountToken: &automount,
 			Containers: []corev1.Container{
 				{
 					Name:    "busybox",

@@ -193,19 +193,16 @@ EOF
   ;;
 "AGENTSCHEDULER")
   echo "Install volcano chart with crd version $crd_version, sharding controller and agent scheduler enabled"
-  helm-install-volcano "  controller_log_level: 5
-  controller_enabled_controllers: \"*\"
-  controller_scheduler_configs:
-    - \"volcano:volcano:0.0:1.0:false:1:100\"
-    - \"agent-scheduler:agent:0.0:1.0:false:1:100\"
+  helm-install-volcano '  controller_log_level: 5
+  controller_enabled_controllers: "*"
   agent_scheduler_enable: true
   agent_scheduler_tolerations:
-    - key: \"node-role.kubernetes.io/control-plane\"
-      operator: \"Exists\"
-      effect: \"NoSchedule\"
-    - key: \"node-role.kubernetes.io/master\"
-      operator: \"Exists\"
-      effect: \"NoSchedule\""
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"'
   ;;
 *)
   echo "Install volcano chart with crd version $crd_version"
